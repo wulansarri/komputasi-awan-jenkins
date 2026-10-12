@@ -1,36 +1,25 @@
 pipeline {
-    agent any
-
-    environment {
-        DOCKER_IMAGE = 'kurniaragilwulansari/komputasi-awan-jenkins:latest'
+  agent any
+  environment {
+    IMAGE_NAME = 'kurniaragilwulansari/simple-app'
+    REGISTRY_CREDENTIALS = 'dockerhub-credentials'
+  }
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+    stage('Build') { steps { bat 'echo "Build di Windows"' } }
+    stage('Build Docker Image') {
+      steps { bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ." }
     }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/wulansarri/komputasi-awan-jenkins.git'
-            }
+    stage('Push Docker Image') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS,
+            usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+          bat 'docker login -u %USER% -p %PASS%'
+          bat "docker push %IMAGE_NAME%:%BUILD_NUMBER%"
+          bat "docker tag %IMAGE_NAME%:%BUILD_NUMBER% %IMAGE_NAME%:latest"
+          bat "docker push %IMAGE_NAME%:latest"
         }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    echo 'Building Docker Image...'
-                    bat "docker build -t ${DOCKER_IMAGE} ."
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    echo 'Pushing Docker Image to Docker Hub...'
-                    withCredentials([usernamePassword(credentialsId: 'ocker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
-                        bat "docker push ${DOCKER_IMAGE}"
-                    }
-                }
-            }
-        }
+      }
     }
+  }
 }
