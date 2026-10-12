@@ -28,7 +28,6 @@ pipeline {
                    withCredentials([usernamePassword(credentialsId: 'ocker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
     bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
     bat "docker push ${DOCKER_IMAGE}"
-}
                     }
                 }
             }
