@@ -2,14 +2,13 @@ pipeline {
     agent any
 
     environment {
-        // Ganti 'USERNAME_DOCKER_HUB' dengan username akun Docker Hub kamu
-        DOCKER_IMAGE = 'USERNAME_DOCKER_HUB/komputasi-awan-jenkins:latest'
+        DOCKER_IMAGE = 'kurniaragilwulansari/komputasi-awan-jenkins:latest'
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
-                git branch: 'main', url: 'https://github.com/kurniaragilwulansari/komputasi-awan-jenkins.git'
+                git branch: 'main', url: 'https://github.com/wulansarri/komputasi-awan-jenkins.git'
             }
         }
 
