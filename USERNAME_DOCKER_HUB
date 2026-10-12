@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    environment {
+        // Ganti 'USERNAME_DOCKER_HUB' dengan username akun Docker Hub kamu
+        DOCKER_IMAGE = 'USERNAME_DOCKER_HUB/komputasi-awan-jenkins:latest'
+    }
+
+    stages {
+        stage('Checkout SCM') {
+            steps {
+                git branch: 'main', url: 'https://github.com/kurniaragilwulansari/komputasi-awan-jenkins.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo 'Building Docker Image...'
+                    bat "docker build -t ${DOCKER_IMAGE} ."
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    echo 'Pushing Docker Image to Docker Hub...'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                        bat "docker push ${DOCKER_IMAGE}"
+                    }
+                }
+            }
+        }
+    }
+}
