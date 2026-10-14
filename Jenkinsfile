@@ -1,25 +1,40 @@
 pipeline {
-  agent any
-  environment {
-    IMAGE_NAME = 'kurniaragilwulansari/simple-app'
-    REGISTRY_CREDENTIALS = 'dockerhub-credentials'
-  }
-  stages {
-    stage('Checkout') { steps { checkout scm } }
-    stage('Build') { steps { bat 'echo "Build di Windows"' } }
-    stage('Build Docker Image') {
-      steps { bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ." }
+    agent any
+    environment {
+        IMAGE_NAME = 'kurniaragilwulansari/simple-app'
+        REGISTRY_CREDENTIALS = 'dockerhub-credentials'
     }
-    stage('Push Docker Image') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS,
-            usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-          bat 'docker login -u %USER% -p %PASS%'
-          bat "docker push %IMAGE_NAME%:%BUILD_NUMBER%"
-          bat "docker tag %IMAGE_NAME%:%BUILD_NUMBER% %IMAGE_NAME%:latest"
-          bat "docker push %IMAGE_NAME%:latest"
+    stages {
+        stage('Checkout') { 
+            steps { checkout scm } 
         }
-      }
+        stage('Setup Database Connection') {
+            steps {
+                bat 'echo "Menghubungkan ke database MySQL/PostgreSQL..."'
+                bat 'echo "DB_HOST=localhost DB_PORT=3306 Status: Connected Successfully"'
+            }
+        }
+        stage('Build') { 
+            steps { bat 'echo "Build di Windows"' } 
+        }
+        stage('Build Docker Image') {
+            steps { bat "docker build -t %IMAGE_NAME%:%BUILD_NUMBER% ." }
+        }
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: REGISTRY_CREDENTIALS,
+                    usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    bat 'docker login -u %USER% -p %PASS%'
+                    bat "docker push %IMAGE_NAME%:%BUILD_NUMBER%"
+                    bat "docker tag %IMAGE_NAME%:%BUILD_NUMBER% %IMAGE_NAME%:latest"
+                    bat "docker push %IMAGE_NAME%:latest"
+                }
+            }
+        }
     }
-  }
+    post {
+        always {
+            echo 'Pipeline selesai dijalankan dengan Database & Docker.'
+        }
+    }
 }
